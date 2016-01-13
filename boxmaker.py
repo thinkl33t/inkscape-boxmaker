@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 '''
-Generates Inkscape SVG file containing box components needed to 
+Generates Inkscape SVG file containing box components needed to
 laser cut a tabbed construction box taking kerf and clearance into account
 
 Copyright (C) 2011 elliot white   elliot@twot.eu
@@ -36,13 +36,13 @@ def side((rx,ry),(sox,soy),(eox,eoy),tabVec,length,(dirx,diry),isTab):
   if not divs%2: divs-=1   # make divs odd
   divs=float(divs)
   tabs=(divs-1)/2          # tabs for side
-  
+
   if equalTabs:
     gapWidth=tabWidth=length/divs
   else:
     tabWidth=nomTab
     gapWidth=(length-tabs*nomTab)/(divs-tabs)
-    
+
   if isTab:                 # kerf correction
     gapWidth-=correction
     tabWidth+=correction
@@ -51,8 +51,8 @@ def side((rx,ry),(sox,soy),(eox,eoy),tabVec,length,(dirx,diry),isTab):
     gapWidth+=correction
     tabWidth-=correction
     first=-correction/2
-    
-  s=[] 
+
+  s=[]
   firstVec=0; secondVec=tabVec
   dirxN=0 if dirx else 1 # used to select operation on x or y
   diryN=0 if diry else 1
@@ -86,7 +86,7 @@ def side((rx,ry),(sox,soy),(eox,eoy),tabVec,length,(dirx,diry),isTab):
   s+='L '+str(rx+eox*thickness+dirx*length)+','+str(ry+eoy*thickness+diry*length)+' '
   return s
 
-  
+
 class BoxMaker(inkex.Effect):
   def __init__(self):
       # Call the base class constructor.
@@ -112,17 +112,19 @@ class BoxMaker(inkex.Effect):
         dest='kerf',default=0.5,help='Kerf (width) of cut')
       self.OptionParser.add_option('--clearance',action='store',type='float',
         dest='clearance',default=0.01,help='Clearance of joints')
+      self.OptionParser.add_option('--extradepth',action='store',type='float',
+        dest='extradepth',default=0.0,help='Extra Tab Depth')
       self.OptionParser.add_option('--style',action='store',type='int',
         dest='style',default=25,help='Layout/Style')
       self.OptionParser.add_option('--spacing',action='store',type='float',
         dest='spacing',default=25,help='Part Spacing')
 
   def effect(self):
-    global parent,nomTab,equalTabs,thickness,correction
-    
+    global parent,nomTab,equalTabs,thickness,correction,extradepth
+
         # Get access to main SVG document element and get its dimensions.
     svg = self.document.getroot()
-    
+
         # Get the attibutes:
     widthDoc  = self.unittouu(svg.get('width'))
     heightDoc = self.unittouu(svg.get('height'))
@@ -131,9 +133,9 @@ class BoxMaker(inkex.Effect):
     layer = inkex.etree.SubElement(svg, 'g')
     layer.set(inkex.addNS('label', 'inkscape'), 'newlayer')
     layer.set(inkex.addNS('groupmode', 'inkscape'), 'layer')
-    
+
     parent=self.current_layer
-    
+
         # Get script's option values.
     unit=self.options.unit
     inside=self.options.inside
@@ -141,13 +143,14 @@ class BoxMaker(inkex.Effect):
     Y = self.unittouu( str(self.options.width) + unit )
     Z = self.unittouu( str(self.options.height)  + unit )
     thickness = self.unittouu( str(self.options.thickness)  + unit )
+    extradepth = self.unittouu( str(self.options.extradepth)  + unit )
     nomTab = self.unittouu( str(self.options.tab) + unit )
     equalTabs=self.options.equal
     kerf = self.unittouu( str(self.options.kerf)  + unit )
     clearance = self.unittouu( str(self.options.clearance)  + unit )
     layout=self.options.style
     spacing = self.unittouu( str(self.options.spacing)  + unit )
-    
+
     if inside: # if inside dimension selected correct values to outside dimension
       X+=thickness*2
       Y+=thickness*2
@@ -158,7 +161,7 @@ class BoxMaker(inkex.Effect):
     # check input values mainly to avoid python errors
     # TODO restrict values to *correct* solutions
     error=0
-    
+
     if min(X,Y,Z)==0:
       inkex.errormsg(_('Error: Dimensions must be non zero'))
       error=1
@@ -170,25 +173,25 @@ class BoxMaker(inkex.Effect):
       error=1
     if nomTab<thickness:
       inkex.errormsg(_('Error: Tab size too small'))
-      error=1	  
+      error=1
     if thickness==0:
       inkex.errormsg(_('Error: Thickness is zero'))
-      error=1	  
+      error=1
     if thickness>min(X,Y,Z)/3: # crude test
       inkex.errormsg(_('Error: Material too thick'))
-      error=1	  
+      error=1
     if correction>min(X,Y,Z)/3: # crude test
       inkex.errormsg(_('Error: Kerf/Clearence too large'))
-      error=1	  
+      error=1
     if spacing>max(X,Y,Z)*10: # crude test
       inkex.errormsg(_('Error: Spacing too large'))
-      error=1	  
+      error=1
     if spacing<kerf:
       inkex.errormsg(_('Error: Spacing too small'))
-      error=1	  
+      error=1
 
     if error: exit()
-   
+
     # layout format:(rootx),(rooty),Xlength,Ylength,tabInfo
     # root= (spacing,X,Y,Z) * values in tuple
     # tabInfo= <abcd> 0=holes 1=tabs
@@ -218,10 +221,10 @@ class BoxMaker(inkex.Effect):
       tabs=piece[4]
       a=tabs>>3&1; b=tabs>>2&1; c=tabs>>1&1; d=tabs&1 # extract tab status for each side
       # generate and draw the sides of each piece
-      drawS(side((x,y),(d,a),(-b,a),-thickness if a else thickness,dx,(1,0),a))          # side a
-      drawS(side((x+dx,y),(-b,a),(-b,-c),thickness if b else -thickness,dy,(0,1),b))     # side b
-      drawS(side((x+dx,y+dy),(-b,-c),(d,-c),thickness if c else -thickness,dx,(-1,0),c)) # side c
-      drawS(side((x,y+dy),(d,-c),(d,a),-thickness if d else thickness,dy,(0,-1),d))      # side d
+      drawS(side((x,y),(d,a),(-b,a),-thickness-extradepth if a else thickness+extradepth,dx,(1,0),a))          # side a
+      drawS(side((x+dx,y),(-b,a),(-b,-c),thickness+extradepth if b else -thickness-extradepth,dy,(0,1),b))     # side b
+      drawS(side((x+dx,y+dy),(-b,-c),(d,-c),thickness+extradepth if c else -thickness-extradepth,dx,(-1,0),c)) # side c
+      drawS(side((x,y+dy),(d,-c),(d,a),-thickness-extradepth if d else thickness+extradepth,dy,(0,-1),d))      # side d
 
 # Create effect instance and apply it.
 effect = BoxMaker()

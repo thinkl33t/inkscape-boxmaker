@@ -21,7 +21,7 @@
   <param name="length" type="float" precision="3" min="0.0" max="10000.0" _gui-text="length">1.0</param>
   <param name="width" type="float" precision="3"  min="0.0" max="10000.0" _gui-text="Width">1.0</param>
   <param name="depth" type="float" precision="3"  min="0.0" max="10000.0" _gui-text="Height">1.0</param>
-  <param name="tab" type="float" precision="2" min="0.0" max="10000.0" _gui-text="Minimum/Prefered Tab Width">1.0</param> 
+  <param name="tab" type="float" precision="2" min="0.0" max="10000.0" _gui-text="Minimum/Prefered Tab Width">1.0</param>
 
   <param name="equal" type="optiongroup" _gui-text="Tab Width">
     <_option value="0">Fixed</_option>
@@ -31,7 +31,8 @@
   <param name="thickness" type="float" precision="2" min="0.0" max="10000.0" _gui-text="Material Thickness">1.0</param>
   <param name="kerf" type="float" precision="3"  min="0.0" max="10000.0" _gui-text="Kerf (cut width)">0.1</param>
   <param name="clearance" type="float" precision="3"  min="0.0" max="10000.0" _gui-text="Clearance">0.01</param>
-	
+  <param name="extradepth" type="float" precision="2"  min="0.0" max="10000.0" _gui-text="Extra Tab Depth">0.0</param>
+
   <param name="style" _gui-text="Layout/Style" type="optiongroup" appearance="minimal">
     <option value="1">Diagramatic</option>
     <option value="2">3 piece</option>
@@ -39,8 +40,8 @@
     <option value="4">Diag Alternate Tabs</option>
   </param>
 
-  <param name="spacing" type="float" precision="2" min="0.0" max="10000.0" _gui-text="Space Between Parts">1.0</param> 
-  
+  <param name="spacing" type="float" precision="2" min="0.0" max="10000.0" _gui-text="Space Between Parts">1.0</param>
+
   <effect>
     <object-type>all</object-type>
     <effects-menu>
